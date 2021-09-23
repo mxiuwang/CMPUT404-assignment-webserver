@@ -81,8 +81,8 @@ class TestYourWebserver(unittest.TestCase):
 
     # CMPUT404W19 did not have to pass to this
     def test_deep_no_end(self):
-        url = self.baseurl + "/deep"
-        expected_url = self.baseurl + "/deep/"
+        url = self.baseurl + "/deep" # http://127.0.0.1:8080/deep
+        expected_url = self.baseurl + "/deep/" # http://127.0.0.1:8080/deep/
         try:
             req = request.urlopen(url, None, 3)
             code = req.getcode() 
@@ -102,11 +102,11 @@ class TestYourWebserver(unittest.TestCase):
 
     def test_hardcode(self):
         os.system("cp -r www/deep www/hardcode")
-        url = self.baseurl + "/hardcode/index.html"
+        url = self.baseurl + "/hardcode/index.html" # url = http://127.0.0.1:8080/hardcode/index.html
         req = request.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND! Hardcoding? /hardcode/index.html")
         self.assertTrue( req.info().get_content_type() == "text/html", ("Bad mimetype for html! %s" % req.info().get_content_type()))
-        url = self.baseurl + "/hardcode/"
+        url = self.baseurl + "/hardcode/" # http://127.0.0.1:8080/hardcode/
         req = request.urlopen(url, None, 3)
         self.assertTrue( req.getcode()  == 200 , "200 OK Not FOUND! Hardcoding? /hardcode/")
         self.assertTrue( req.info().get_content_type() == "text/html", ("Bad mimetype for html! %s" % req.info().get_content_type()))

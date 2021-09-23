@@ -43,6 +43,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
         http_method = http_request_list[0]
         requestURL = http_request_list[1]
         httpVer = http_request_list[2]
+
+        # if it's a folder, go to index.html in that folder 
+        if requestURL[-1] == '/':
+            requestURL += "index.html"
         print("requestURL1",requestURL) # /index.html
         print("httpVer",httpVer) # HTTP/1.1
 
@@ -58,11 +62,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         requestURL = os.path.normpath(requestURL)
         print("requestURL2",requestURL) # /index.html
-        if requestURL == '/':
-            requestURL = "index.html"
-        elif requestURL[0] in ['\\', '/']:
+        if requestURL[0] in ['\\', '/']:
             requestURL = requestURL[1:]
-        print("requestURL3",requestURL)
+        print("requestURL3",requestURL) # index.html
 
         requestPath = os.path.join(pyPath, requestURL)
         print("requestPath", requestPath) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
