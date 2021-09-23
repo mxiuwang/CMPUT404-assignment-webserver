@@ -1,7 +1,6 @@
 #  coding: utf-8 
 import socketserver
 import os
-from urllib import request
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -28,6 +27,15 @@ from urllib import request
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+'''Deep/test
+assume it's a file (or check if it's a directory)
+If it's a directory, return 301 Moved Permenantly, and add "/" so it goes it /index.html
+'''
+
+MSG_200 = "200 OK"
+MSG_301 = "301 Moved Permanently"
+MSG_404 = "404 Not Found"
+MSG_405 = "405 Method Not Allowed"
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
@@ -39,6 +47,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         http_request = all_data_list[0]
         print("http_request",http_request) # http_request = GET /index.html HTTP/1.1
         
+        # get info from http_request 
         http_request_list = http_request.split(" ")
         http_method = http_request_list[0]
         requestURL = http_request_list[1]
@@ -52,13 +61,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # requirement 14
         if http_method != "GET": # or if "POST" in http_request and "PUT" in http_request and "DELETE" in http_request:
-            self.request.sendall(str.encode('HTTP/1.1 '+'405 Method Not Allowed'))
+            self.request.sendall(str.encode('HTTP/1.1 '+MSG_405))
             print("Method Not Allowed")
             return 
         
         # Requirement 1 
-        pyPath = os.path.dirname(os.path.realpath(__file__)) + "/www" # __file__ = server.py 
-        print("pyPath",pyPath, type(pyPath)) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
+        # cite: https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
+        pyPath = os.path.abspath(os.getcwd()) + "/www" # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
+        print("os.get.cwd()",os.path.abspath(os.getcwd())+"/www")
 
         requestURL = os.path.normpath(requestURL)
         print("requestURL2",requestURL) # /index.html
@@ -69,41 +79,50 @@ class MyWebServer(socketserver.BaseRequestHandler):
         requestPath = os.path.join(pyPath, requestURL)
         print("requestPath", requestPath) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
 
-        responseCode = '200 OK'
+        responseCode = MSG_200
+        # check if path is a directory 
+        is_directory = str(os.path.isdir(requestPath))
+        if is_directory=="True" and requestPath[-1]!="/":
+            requestPath += "/index.html"
+            responseCode = MSG_301
+
+        # check if filepath exists
         if os.path.exists(requestPath) is False:
-            responseCode = '404 Not Found'
+            responseCode = MSG_404
             self.request.sendall(str.encode('HTTP/1.1 '+responseCode))
             print("404 Path not found:", requestPath) # requestPath = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
             return 
-
+        # assume path is a file 
         requestPath = os.path.normpath(requestPath)
         print("requestPath normalized", requestPath)
+
+        # if file exists, find file extension 
+        extension = os.path.splitext(requestPath)[1]
+        print("ext",extension)
 
         with open(requestPath, 'rb') as f:
             fileBuf = f.read()
         
         # Requirements 5, 6: display the right MIME content type 
-        ext = os.path.splitext(requestPath)[1]
-        print("ext",ext)
         content_type = 'application/octet-stream'
-        if ext == '.html':
+        if '.html' in extension:
             content_type = 'text/html'
-        elif ext == '.css':
+        elif '.css' in extension:
             content_type = 'text/css'
 
         print("content_type",content_type)
         response = httpVer + ' {}\r\n'.format(responseCode) # httpVer = HTTP/1.1, responseCode = "200 OK"
         print("response1",response)
         response += 'Cache-Control: no-cache\r\n'
-        response += 'Content-Type: {0}; charset=utf-8\r\n'.format(content_type)
-        response += 'Content-Length: {0}\r\n'.format(len(fileBuf))
+        response += 'Content-Type: {}; charset=utf-8\r\n'.format(content_type)
+        response += 'Content-Length: {}\r\n'.format(len(fileBuf))
         response += 'Connection: close\r\n'
         response += '\r\n'
         response += fileBuf.decode("utf-8")
 
         print("total response",response)
 
-        self.request.sendall(str.encode(response))
+        self.request.sendall(str.encode(response, "utf-8"))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
