@@ -34,39 +34,48 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-
-        # should this be here or at the end?
-        self.request.sendall(bytearray("OK",'utf-8')) 
         
         all_data_list = self.data.decode("utf-8").split('\r\n')
         http_request = all_data_list[0]
-        print(http_request)
+        print("http_request",http_request) # http_request = GET /index.html HTTP/1.1
+        
+        http_request_list = http_request.split(" ")
+        http_method = http_request_list[0]
+        requestURL = http_request_list[1]
+        httpVer = http_request_list[2]
+        print("requestURL1",requestURL) # /index.html
+        print("httpVer",httpVer) # HTTP/1.1
 
         # requirement 14
-        if "GET" not in http_request: # or if "POST" in http_request and "PUT" in http_request and "DELETE" in http_request:
-            self.request.sendall('405 Method Not Allowed')
+        if http_method != "GET": # or if "POST" in http_request and "PUT" in http_request and "DELETE" in http_request:
+            self.request.sendall(str.encode('HTTP/1.1 '+'405 Method Not Allowed'))
             print("Method Not Allowed")
             return 
-        
-        _, requestURL, httpVer = map(lambda x: x.strip(), http_request.split(' '))
-        print("requestURL",requestURL) # /index.html
-        print("httpVer",httpVer) # HTTP/1.1
         
         # Requirement 1 
         pyPath = os.path.dirname(os.path.realpath(__file__)) + "/www" # __file__ = server.py 
         print("pyPath",pyPath, type(pyPath)) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
 
         requestURL = os.path.normpath(requestURL)
-        print("requestURL",requestURL)
-        if requestURL[0] in ['\\', '/']:
+        print("requestURL2",requestURL) # /index.html
+        if requestURL == '/':
+            requestURL = "index.html"
+        elif requestURL[0] in ['\\', '/']:
             requestURL = requestURL[1:]
+        print("requestURL3",requestURL)
 
         requestPath = os.path.join(pyPath, requestURL)
         print("requestPath", requestPath) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
 
         responseCode = '200 OK'
+        if os.path.exists(requestPath) is False:
+            responseCode = '404 Not Found'
+            self.request.sendall(str.encode('HTTP/1.1 '+responseCode))
+            print("404 Path not found:", requestPath) # requestPath = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
+            return 
 
         requestPath = os.path.normpath(requestPath)
+        print("requestPath normalized", requestPath)
 
         with open(requestPath, 'rb') as f:
             fileBuf = f.read()
@@ -87,7 +96,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         response += 'Content-Type: {0}; charset=utf-8\r\n'.format(content_type)
         response += 'Content-Length: {0}\r\n'.format(len(fileBuf))
         response += 'Connection: close\r\n'
-        response += '\r\n\r\n'
+        response += '\r\n'
         response += fileBuf.decode("utf-8")
 
         print("total response",response)
