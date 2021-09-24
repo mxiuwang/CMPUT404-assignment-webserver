@@ -36,11 +36,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
+        # print ("Got a request of: %s\n" % self.data)
         
         all_data_list = self.data.decode("utf-8").split('\r\n')
         http_request = all_data_list[0]
-        print("http_request",http_request) # http_request = GET /index.html HTTP/1.1
+        # print("http_request",http_request) # http_request = GET /index.html HTTP/1.1
         
         # get info from http_request 
         http_request_list = http_request.split(" ")
@@ -51,35 +51,35 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # if it's a folder, go to index.html in that folder 
         if destination_og[-1] == '/':
             destination_og += "index.html"
-        print("destination_og1",destination_og) # /index.html
-        print("http_ver",http_ver) # HTTP/1.1
+        # print("destination_og1",destination_og) # /index.html
+        # print("http_ver",http_ver) # HTTP/1.1
 
         # requirement 14
         if http_method != "GET": # or if "POST" in http_request and "PUT" in http_request and "DELETE" in http_request:
             self.request.sendall(str.encode('HTTP/1.1 '+MSG_405))
-            print("Method Not Allowed")
+            # print("Method Not Allowed")
             return 
         
         # Requirement 1 
         # cite: https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
         abs_path = os.path.abspath(os.getcwd()) + "/www" # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
-        print("os.get.cwd()",os.path.abspath(os.getcwd())+"/www")
+        # print("os.get.cwd()",os.path.abspath(os.getcwd())+"/www")
 
         destination_og = os.path.normpath(destination_og) # normalize path to remove/convert extra ..//\\ etc.
-        print("destination_og2",destination_og) # /index.html
+        # print("destination_og2",destination_og) # /index.html
         if destination_og[0] in ['\\', '/']:
             destination_og = destination_og[1:]
-        print("destination_og3",destination_og) # index.html
+        # print("destination_og3",destination_og) # index.html
 
         dest_path = os.path.join(abs_path, destination_og)
-        print("dest_path", dest_path) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
+        # print("dest_path", dest_path) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
 
         status_code = MSG_200
         # check if filepath exists
         if os.path.exists(dest_path) is False:
             status_code = MSG_404
             self.request.sendall(str.encode('HTTP/1.1 '+status_code))
-            print("404 Path not found:", dest_path) # dest_path = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
+            # print("404 Path not found:", dest_path) # dest_path = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
             return 
 
         # check if path is a directory 
@@ -87,12 +87,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
         if is_directory=="True" and dest_path[-1]!="/":
             dest_path += "/index.html"
             status_code = MSG_301
-        print("status_code",status_code)
+        # print("status_code",status_code)
 
         # if file exists, find file extension 
         # cite: https://stackoverflow.com/questions/541390/extracting-extension-from-filename-in-python
         extension = os.path.splitext(dest_path)[1]
-        print("ext",extension)
+        # print("ext",extension)
 
         # read file 
         f=open(dest_path,"rb")
@@ -107,9 +107,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
         elif '.css' in extension:
             content_type = 'text/css'
 
-        print("content_type",content_type)
+        # print("content_type",content_type)
         response = http_ver + ' {}\r\n'.format(status_code) # http_ver = HTTP/1.1, status_code = "200 OK"
-        print("response1",response)
+        # print("response1",response)
         if status_code == MSG_301:
             response += "Location: " + "http://127.0.0.1:8080/" + destination_og + "\r\n"
         response += 'Content-Type: ' + content_type + '; charset=utf-8\r\n'
@@ -117,7 +117,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         response += 'Connection: close\r\n\r\n'
         response += fileBuf.decode("utf-8")
 
-        print("total response",response)
+        # print("total response",response)
 
         self.request.sendall(str.encode(response, "utf-8"))
 
