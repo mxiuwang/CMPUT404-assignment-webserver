@@ -27,30 +27,30 @@
    1 [x] The webserver can serve files from ./www
    2 [x] The webserver can be run using the runner.sh file
    3 [x] The webserver can pass all the tests in freetests.py
-   4 [ ] The webserver can pass all the tests in not-free-tests.py
+   4 [x] The webserver can pass all the tests in not-free-tests.py
      (you only have part of this one, I reserve the right to add tests)
    5 [x] The webserver supports mime-types for HTML
    6 [x] The webserver supports mime-types for CSS
-   7 [ ] The webserver can return index.html from directories (paths
+   7 [x] The webserver can return index.html from directories (paths
      that end in /)
    8 [x] The webserver can server 404 errors for paths not found
-   9 [ ] The webserver works with Firefox and Chromium
+   9 [x] The webserver works with Firefox and Chromium
      http://127.0.0.1:8080/
    10 [x] The webserver can serve CSS properly so that the front page
      has an orange h1 header.
-   11 [ ] I can check out the source code via an HTTP git URL
-   12 [ ] Provide 1 screenshot (commit and push it!) of Firefox at http://127.0.0.1:8080/ as ./root.png in the root of the repo
-   13 [ ] Provide 1 screenshot (commit and push it!) of Firefox at http://127.0.0.1:8080/deep/ as ./deep.png in the root of the repo
+   11 [x] I can check out the source code via an HTTP git URL
+   12 [x] Provide 1 screenshot (commit and push it!) of Firefox at http://127.0.0.1:8080/ as ./root.png in the root of the repo
+   13 [x] Provide 1 screenshot (commit and push it!) of Firefox at http://127.0.0.1:8080/deep/ as ./deep.png in the root of the repo
    14 [x] Return a status code of "405 Method Not Allowed" for any method you cannot handle (POST/PUT/DELETE) 
-   15 [ ] Must use 301 to correct paths such as http://127.0.0.1:8080/deep to http://127.0.0.1:8080/deep/ (path ending)
+   15 [x] Must use 301 to correct paths such as http://127.0.0.1:8080/deep to http://127.0.0.1:8080/deep/ (path ending)
 
 ** Restrictions
    - [x] Use Python3
-   - [ ] Must run in the 404 VM (Ubuntu 18.10)
-   - [ ] License your webserver properly (use an OSI approved license)
+   - [x] Must run in the 404 VM (Ubuntu 18.10)
+   - [x] License your webserver properly (use an OSI approved license)
      - Put your name or some identifier (not your student number) on it!
    - [x] You cannot use a Web Server library
-   - [ ] Screenshots must be named deep.png and root.png in the root of the repository
+   - [x] Screenshots must be named deep.png and root.png in the root of the repository
 
 ** Recommendations
    - Use the server.py skeleton. Handling sockets yourself is not

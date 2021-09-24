@@ -18,6 +18,12 @@ server.py contains contributions from:
 * Eddie Antonio Santos
 * Jackson Z Chang
 * Mandy Meindersma 
+* Michelle Wang 
+* Olivier Vadiavaloo (Collaborator)
+
+External Sources
+* https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
+* https://stackoverflow.com/questions/541390/extracting-extension-from-filename-in-python
 
 But the server.py example is derived from the python documentation
 examples thus some of the code is Copyright © 2001-2013 Python

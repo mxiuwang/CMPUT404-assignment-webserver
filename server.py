@@ -2,7 +2,7 @@
 import socketserver
 import os
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos, Michelle Wang (ccid: mxwang)
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,11 +27,6 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-'''Deep/test
-assume it's a file (or check if it's a directory)
-If it's a directory, return 301 Moved Permenantly, and add "/" so it goes it /index.html
-'''
-
 MSG_200 = "200 OK"
 MSG_301 = "301 Moved Permanently"
 MSG_404 = "404 Not Found"
@@ -50,14 +45,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # get info from http_request 
         http_request_list = http_request.split(" ")
         http_method = http_request_list[0]
-        requestURL = http_request_list[1]
-        httpVer = http_request_list[2]
+        destination_og = http_request_list[1]
+        http_ver = http_request_list[2]
 
         # if it's a folder, go to index.html in that folder 
-        if requestURL[-1] == '/':
-            requestURL += "index.html"
-        print("requestURL1",requestURL) # /index.html
-        print("httpVer",httpVer) # HTTP/1.1
+        if destination_og[-1] == '/':
+            destination_og += "index.html"
+        print("destination_og1",destination_og) # /index.html
+        print("http_ver",http_ver) # HTTP/1.1
 
         # requirement 14
         if http_method != "GET": # or if "POST" in http_request and "PUT" in http_request and "DELETE" in http_request:
@@ -67,43 +62,45 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         # Requirement 1 
         # cite: https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
-        pyPath = os.path.abspath(os.getcwd()) + "/www" # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
+        abs_path = os.path.abspath(os.getcwd()) + "/www" # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www
         print("os.get.cwd()",os.path.abspath(os.getcwd())+"/www")
 
-        requestURL = os.path.normpath(requestURL)
-        print("requestURL2",requestURL) # /index.html
-        if requestURL[0] in ['\\', '/']:
-            requestURL = requestURL[1:]
-        print("requestURL3",requestURL) # index.html
+        destination_og = os.path.normpath(destination_og) # normalize path to remove/convert extra ..//\\ etc.
+        print("destination_og2",destination_og) # /index.html
+        if destination_og[0] in ['\\', '/']:
+            destination_og = destination_og[1:]
+        print("destination_og3",destination_og) # index.html
 
-        requestPath = os.path.join(pyPath, requestURL)
-        print("requestPath", requestPath) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
+        dest_path = os.path.join(abs_path, destination_og)
+        print("dest_path", dest_path) # /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/index.html
 
-        responseCode = MSG_200
-        # check if path is a directory 
-        is_directory = str(os.path.isdir(requestPath))
-        if is_directory=="True" and requestPath[-1]!="/":
-            requestPath += "/index.html"
-            responseCode = MSG_301
-
+        status_code = MSG_200
         # check if filepath exists
-        if os.path.exists(requestPath) is False:
-            responseCode = MSG_404
-            self.request.sendall(str.encode('HTTP/1.1 '+responseCode))
-            print("404 Path not found:", requestPath) # requestPath = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
+        if os.path.exists(dest_path) is False:
+            status_code = MSG_404
+            self.request.sendall(str.encode('HTTP/1.1 '+status_code))
+            print("404 Path not found:", dest_path) # dest_path = /Users/michellewang/Desktop/School/Cmput_404/assginment1/www/do-not-implement-this-page-it-is-not-found
             return 
-        # assume path is a file 
-        requestPath = os.path.normpath(requestPath)
-        print("requestPath normalized", requestPath)
+
+        # check if path is a directory 
+        is_directory = str(os.path.isdir(dest_path))
+        if is_directory=="True" and dest_path[-1]!="/":
+            dest_path += "/index.html"
+            status_code = MSG_301
+        print("status_code",status_code)
 
         # if file exists, find file extension 
-        extension = os.path.splitext(requestPath)[1]
+        # cite: https://stackoverflow.com/questions/541390/extracting-extension-from-filename-in-python
+        extension = os.path.splitext(dest_path)[1]
         print("ext",extension)
 
-        with open(requestPath, 'rb') as f:
-            fileBuf = f.read()
+        # read file 
+        f=open(dest_path,"rb")
+        fileBuf = f.read()
+        file_len = len(fileBuf)
+        f.close()
         
-        # Requirements 5, 6: display the right MIME content type 
+        # Requirements 5, 6: display file in correct MIME content type 
         content_type = 'application/octet-stream'
         if '.html' in extension:
             content_type = 'text/html'
@@ -111,13 +108,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
             content_type = 'text/css'
 
         print("content_type",content_type)
-        response = httpVer + ' {}\r\n'.format(responseCode) # httpVer = HTTP/1.1, responseCode = "200 OK"
+        response = http_ver + ' {}\r\n'.format(status_code) # http_ver = HTTP/1.1, status_code = "200 OK"
         print("response1",response)
-        response += 'Cache-Control: no-cache\r\n'
-        response += 'Content-Type: {}; charset=utf-8\r\n'.format(content_type)
-        response += 'Content-Length: {}\r\n'.format(len(fileBuf))
-        response += 'Connection: close\r\n'
-        response += '\r\n'
+        if status_code == MSG_301:
+            response += "Location: " + "http://127.0.0.1:8080/" + destination_og + "\r\n"
+        response += 'Content-Type: ' + content_type + '; charset=utf-8\r\n'
+        response += 'Content-Length: {}\r\n'.format(file_len)
+        response += 'Connection: close\r\n\r\n'
         response += fileBuf.decode("utf-8")
 
         print("total response",response)
